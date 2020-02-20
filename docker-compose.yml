@@ -1,0 +1,210 @@
+version: "2"
+volumes:
+  pgdata:
+  cache:
+services:
+  postgres:
+    image: "openmaptiles/postgis:4.0.0"
+    volumes:
+    - pgdata:/var/lib/postgresql/data
+    networks:
+    - postgres_conn
+    ports:
+     - "5432"
+    env_file: .env
+  import-natural-earth:
+    image: "openmaptiles/import-natural-earth:4.0.0"
+#    env_file: .env
+    environment:
+      #BBOX: "8.25,46.97,9.58,47.52"
+      #BBOX: "5.97,45.75,10.7,47.72"
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BBOX: ${BBOX}
+      MIN_ZOOM: ${MIN_ZOOM}
+      MAX_ZOOM: ${MAX_ZOOM}
+      OSM_AREA_NAME: ${OSM_AREA_NAME}
+    networks:
+    - postgres_conn
+  import-water:
+    image: "openmaptiles/import-water:1.0"
+#    env_file: .env
+    environment:
+      #BBOX: "8.25,46.97,9.58,47.52"
+      #BBOX: "5.97,45.75,10.7,47.72"
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BBOX: ${BBOX}
+      MIN_ZOOM: ${MIN_ZOOM}
+      MAX_ZOOM: ${MAX_ZOOM}
+      OSM_AREA_NAME: ${OSM_AREA_NAME}
+    networks:
+    - postgres_conn
+  import-lakelines:
+    image: "openmaptiles/import-lakelines:4.0.0"
+#    env_file: .env
+    environment:
+      #BBOX: "8.25,46.97,9.58,47.52"
+      #BBOX: "5.97,45.75,10.7,47.72"
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BBOX: ${BBOX}
+      MIN_ZOOM: ${MIN_ZOOM}
+      MAX_ZOOM: ${MAX_ZOOM}
+      OSM_AREA_NAME: ${OSM_AREA_NAME}
+    networks:
+    - postgres_conn
+  import-osm:
+    image: "openmaptiles/import-osm:4.0.0"
+    env_file: .env
+    environment:
+      DIFF_MODE: ${DIFF_MODE}
+      BBOX: ${BBOX}
+      MIN_ZOOM: ${MIN_ZOOM}
+      MAX_ZOOM: ${MAX_ZOOM}
+      OSM_AREA_NAME: ${OSM_AREA_NAME}
+    networks:
+    - postgres_conn
+    volumes:
+     - /private/var/app/openmaptiles/data:/import
+     - /private/var/app/openmaptiles/build:/mapping
+     - cache:/cache
+  import-osmborder:
+    image: "openmaptiles/import-osmborder:3.1.0"
+    env_file: .env
+    networks:
+    - postgres_conn
+  import-osm-diff:
+    image: "openmaptiles/import-osm:4.0.0"
+    env_file: .env
+    command: ./import_diff.sh
+    environment:
+      DIFF_MODE: ${DIFF_MODE}
+    networks:
+    - postgres_conn
+    volumes:
+     - /private/var/app/openmaptiles/data:/import
+     - /private/var/app/openmaptiles/build:/mapping
+     - cache:/cache
+  update-osm:
+    image: "openmaptiles/import-osm:4.0.0"
+    env_file: .env
+    environment:
+      DIFF_MODE: ${DIFF_MODE}
+    command: ./import_update.sh
+    networks:
+    - postgres_conn
+    volumes:
+     - /private/var/app/openmaptiles/data:/import
+     - /private/var/app/openmaptiles/build:/mapping
+     - cache:/cache
+  import-sql:
+    image: "openmaptiles/import-sql:3.1.0"
+#    env_file: .env
+    environment:
+      #BBOX: "8.25,46.97,9.58,47.52"
+      #BBOX: "5.97,45.75,10.7,47.72"
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BBOX: ${BBOX}
+      MIN_ZOOM: ${MIN_ZOOM}
+      MAX_ZOOM: ${MAX_ZOOM}
+      OSM_AREA_NAME: ${OSM_AREA_NAME}
+    networks:
+    - postgres_conn
+    volumes:
+     - /private/var/app/openmaptiles/build:/sql
+  import-wikidata:
+    image: "openmaptiles/import-wikidata:3.1.0"
+#    env_file: .env
+    environment:
+      #BBOX: "8.25,46.97,9.58,47.52"
+      #BBOX: "5.97,45.75,10.7,47.72"
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BBOX: ${BBOX}
+      MIN_ZOOM: ${MIN_ZOOM}
+      MAX_ZOOM: ${MAX_ZOOM}
+      OSM_AREA_NAME: ${OSM_AREA_NAME}
+    command: import-wikidata
+    networks:
+    - postgres_conn
+    volumes:
+     - /private/var/app/openmaptiles/wikidata:/import
+  openmaptiles-tools:
+    image: "openmaptiles/openmaptiles-tools:4.0.0"
+#    env_file: .env
+    environment:
+      #BBOX: "8.25,46.97,9.58,47.52"
+      #BBOX: "5.97,45.75,10.7,47.72"
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BBOX: ${BBOX}
+      MIN_ZOOM: ${MIN_ZOOM}
+      MAX_ZOOM: ${MAX_ZOOM}
+      OSM_AREA_NAME: ${OSM_AREA_NAME}
+    networks:
+    - postgres_conn
+    volumes:
+     - /private/var/app/openmaptiles:/tileset
+     - /private/var/app/openmaptiles/build:/sql
+  generate-changed-vectortiles:
+    image: "openmaptiles/generate-vectortiles:4.0.0"
+    command: ./export-list.sh
+    volumes:
+    - /private/var/app/openmaptiles/data:/export
+    - /private/var/app/openmaptiles/build/openmaptiles.tm2source:/tm2source
+    networks:
+    - postgres_conn
+#    env_file: .env
+  generate-vectortiles:
+    image: "openmaptiles/generate-vectortiles:4.0.0"
+    volumes:
+    - /private/var/app/openmaptiles/data:/export
+    - /private/var/app/openmaptiles/build/openmaptiles.tm2source:/tm2source
+    networks:
+    - postgres_conn
+#    env_file: .env
+    environment:
+      #BBOX: "8.25,46.97,9.58,47.52"
+      #BBOX: "5.97,45.75,10.7,47.72"
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BBOX: ${BBOX}
+      MIN_ZOOM: ${MIN_ZOOM}
+      MAX_ZOOM: ${MAX_ZOOM}
+      OSM_AREA_NAME: ${OSM_AREA_NAME}
+  postserve:
+    image: "openmaptiles/postserve:0.2"
+    env_file: .env
+    networks:
+     - postgres_conn
+    ports:
+    - "8090:8080"
+    volumes:
+     - /private/var/app/openmaptiles/build/openmaptiles.tm2source:/mapping
+
+networks:
+  postgres_conn:
+    driver: bridge
